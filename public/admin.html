@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUCTION ADMIN PANEL</title>
+    <!-- Added Google Fonts to match frontend -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- jsPDF Library for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF-AutoTable plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    
+    <!-- Redesigned Light-Mode Admin CSS -->
+    <style>
+        :root {
+            /* --- NEW LIGHT THEME --- */
+            --color-bg-dark: #ECEFF1; /* Light Gray Background */
+            --color-bg-light: #F5F5F5; /* Very Light Gray */
+            --color-container-bg: #FFFFFF; /* White */
+            --color-border: #CFD8DC; /* Light Gray Border */
+            --color-main-accent: #D32F2F; /* Strong Red */
+            --color-main-glow: rgba(211, 47, 47, 0.2);
+            --color-tech-blue: #007BFF; /* Standard Blue */
+            --color-tech-glow: rgba(0, 123, 255, 0.2);
+            --color-text-light: #212121; /* Almost Black */
+            --color-text-dark: #555555; /* Dark Gray */
+            --color-warning: #FFA000; /* Amber */
+            --color-warning-dark: #FFFFFF; /* White text on amber */
+            --color-success: #388E3C; /* Green */
+            --color-danger: #D32F2F; /* Red */
+            --color-info: #546E7A; /* Blue Gray */
+        }
+
+        body { 
+            font-family: 'Rajdhani', sans-serif; 
+            margin: 20px; 
+            background-color: var(--color-bg-light); 
+            color: var(--color-text-light);
+        }
+        
+        /* --- Dashboard Layout --- */
+        #dashboardGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .container { 
+            background: var(--color-container-bg); 
+            border: 1px solid var(--color-border); 
+            border-radius: 8px; 
+            padding: 20px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        h1, h2, h3 { 
+            font-family: 'Orbitron', sans-serif;
+            border-bottom: 2px solid var(--color-border); 
+            padding-bottom: 10px;
+            color: var(--color-main-accent);
+            text-shadow: 0 0 8px var(--color-main-glow);
+            text-transform: uppercase;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            border: none;
+        }
+        h2 {
+            font-size: 1.5em;
+        }
+        h3 {
+            font-size: 1.1em;
+            color: var(--color-tech-blue);
+            text-shadow: 0 0 8px var(--color-tech-glow);
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        label {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1.1em;
+            color: var(--color-text-dark);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input, select { 
+            width: 95%; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+            border: 1px solid var(--color-border); 
+            border-radius: 4px;
+            background-color: #FAFAFA;
+            color: var(--color-text-light);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.1em;
+        }
+        input::placeholder { color: #999; }
+        input[type="file"] {
+            color: var(--color-text-dark);
+            padding: 10px 0;
+        }
+
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            border: none; 
+            border-radius: 4px; 
+            color: white; 
+            cursor: pointer; 
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+        button:disabled {
+            background-color: #BDBDBD !important;
+            color: #757575 !important;
+            cursor: not-allowed !important;
+        }
+
+        .btn-add { background-color: var(--color-tech-blue); color: white; }
+        .btn-add:hover:not(:disabled) { background-color: #0056b3; }
+        .btn-import { background-color: var(--color-success); color: white; } 
+        .btn-import:hover:not(:disabled) { background-color: #2a7831; } 
+        .btn-load { background-color: var(--color-info); color: white; } 
+        .btn-load:hover:not(:disabled) { background-color: #435a66; } 
+        .btn-archive { background-color: var(--color-success); color: white; } 
+        .btn-archive:hover:not(:disabled) { background-color: #2a7831; } 
+        
+        .btn-random { background-color: var(--color-tech-blue); color: white; font-size: 1.1em; } 
+        .btn-random:hover:not(:disabled) { background-color: #0056b3; }
+        
+        .btn-random-unsold { background-color: var(--color-warning); color: white; font-size: 1.1em; margin-top: 10px; } 
+        .btn-random-unsold:hover:not(:disabled) { background-color: #e69100; }
+        
+        .btn-sell { background-color: var(--color-success); margin-top: 10px; }
+        .btn-sell:hover:not(:disabled) { background-color: #2a7831; }
+        
+        .btn-pass { background-color: var(--color-danger); margin-top: 5px; }
+        .btn-pass:hover:not(:disabled) { background-color: #b02a2a; }
+        
+        .btn-delete { background-color: var(--color-info); margin-top: 10px; } 
+        .btn-delete:hover:not(:disabled) { background-color: #435a66; }
+        
+        .btn-danger { background-color: var(--color-danger); }
+        .btn-danger-confirm { background-color: #c82333; }
+        
+        .btn-pdf { background-color: var(--color-success); font-size: 1.2em; }
+        .btn-pdf:hover:not(:disabled) { background-color: #2a7831; }
+
+        .btn-back { background-color: var(--color-info); width: auto; padding: 5px 15px; font-size: 0.8em; }
+        .btn-logout { background-color: var(--color-danger); width: auto; padding: 5px 15px; font-size: 0.8em; float: right; } /* NEW */
+
+        /* Auction State Buttons */
+        .btn-go-live { background-color: var(--color-success); font-size: 1.3em; padding: 15px; }
+        .btn-go-live:hover:not(:disabled) { background-color: #2a7831; }
+        .btn-end-auction { background-color: var(--color-danger); margin-top: 10px; }
+        .btn-end-auction:hover:not(:disabled) { background-color: #b02a2a; }
+        .btn-set-time { background-color: var(--color-info); }
+        .btn-set-time:hover:not(:disabled) { background-color: #435a66; }
+
+        ul { list-style-type: none; padding: 0; max-height: 200px; overflow-y: auto; }
+        ul li { 
+            padding: 8px; 
+            border: 1px solid var(--color-border); 
+            margin-bottom: 5px; 
+            background: #F5F5F5;
+            border-radius: 4px;
+        }
+
+        /* Season List Styles */
+        #seasonList {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .season-item { 
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .season-button {
+            background-color: var(--color-info);
+            color: white;
+            padding: 20px;
+            font-size: 1.2em;
+            flex-grow: 1; /* Button takes most space */
+        }
+        .season-button:hover {
+            background-color: #435a66;
+        }
+        .btn-delete-season { 
+            background-color: var(--color-danger);
+            color: white;
+            width: auto;
+            padding: 20px;
+        }
+        .btn-delete-season:hover {
+            background-color: #b02a2a;
+        }
+        
+        #auctionContainer { 
+            background-color: #FFFBEB; 
+            border: 2px solid var(--color-warning); 
+        }
+        #auctionContainer h2 { color: var(--color-warning); }
+
+        #completeContainer { 
+            background-color: #F3FAF3; 
+            border: 2px solid var(--color-success);
+        }
+        #completeContainer h2 { color: var(--color-success); }
+        
+        .status-Pending { color: var(--color-text-dark); }
+        .status-OnBlock { color: var(--color-warning); font-weight: bold; }
+        .status-Sold { color: var(--color-success); font-weight: bold; }
+        .status-Unsold { color: var(--color-danger); }
+        
+        #dangerZone { background-color: #FFF5F5; border: 2px solid var(--color-danger); }
+        #dangerZone h3 { color: var(--color-danger); }
+        #confirmDeleteGroup { display: none; margin-top: 10px; }
+
+        /* Show/Hide Panels */
+        #mainAdminPanel {
+            display: none; /* Hidden by default */
+        }
+        #seasonSelectorContainer {
+            display: none; /* Hidden by default */
+        }
+        #loginContainer {
+            display: block; /* Shown by default */
+            max-width: 500px;
+            margin: 40px auto;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-box {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        .modal-box h2 { color: var(--color-danger); }
+        .modal-box p { color: var(--color-text-dark); } /* Fixed modal text color */
+        .modal-box button { color: white; }
+
+        /* Player Import List */
+        .player-import-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--color-border);
+            padding: 10px;
+            border-radius: 4px;
+            background: #FAFAFA;
+            margin-top: 10px;
+        }
+        .player-import-item {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .player-import-item:last-child {
+            border-bottom: none;
+        }
+        .player-import-item input {
+            width: auto;
+            margin-right: 10px;
+        }
+        .player-import-item label {
+            margin: 0;
+            font-size: 1em;
+            font-weight: normal;
+            color: var(--color-text-light);
+        }
+        
+        /* Secret Panel Styles */
+        #manualOverrideToggle {
+            font-size: 0.9em;
+            color: var(--color-info);
+            text-decoration: underline;
+            cursor: pointer;
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+        }
+        #manualOverridePanel {
+            display: none; /* Hidden by default */
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed var(--color-border);
+        }
+        .btn-manual-block {
+            background-color: var(--color-info);
+            color: white;
+        }
+        .btn-manual-block:hover:not(:disabled) {
+            background-color: #435a66;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NEW: Login Panel -->
+    <div id="loginContainer" class="container">
+        <h1>Admin Login</h1>
+        <label for="adminEmail">Email:</label>
+        <input type="email" id="adminEmail" placeholder="admin@auction.com">
+        <label for="adminPassword">Password:</label>
+        <input type="password" id="adminPassword" placeholder="••••••••">
+        <button id="loginButton" class="btn-add">Login</button>
+        <p id="loginStatus" style="font-weight: bold; text-align: center;"></p>
+    </div>
+
+    <!-- NEW: Season Selector Panel -->
+    <div id="seasonSelectorContainer" class="container">
+        <button id="logoutButton" class="btn-logout">Sign Out</button>
+        <h1>Select a Season</h1>
+        
+        <h3>Existing Seasons</h3>
+        <div id="seasonList">
+            <!-- Season buttons will be added here -->
+        </div>
+        <p id="seasonListStatus">Loading seasons...</p>
+
+        <h3 style="margin-top: 30px;">Create New Season</h3>
+        <label for="newSeasonName">Season Name:</label>
+        <input type="text" id="newSeasonName" placeholder="e.g., Season 7">
+        <button id="createSeasonButton" class="btn-add">Create and Select Season</button>
+        <p id="createSeasonStatus" style="font-weight: bold;"></p>
+    </div>
+
+    <!-- Main Admin Panel (Hidden by default) -->
+    <div id="mainAdminPanel">
+        <button id="backToSeasonsButton" class="btn-back"> &larr; Back to Seasons</button>
+        <button id="logoutButtonMain" class="btn-logout">Sign Out</button>
+        <h1>SS-RT Auction Control Panel</h1>
+        <h2 style="text-align: center; color: var(--color-tech-blue); border: none;" id="currentSeasonName"></h2>
+
+        <div id="dashboardGrid">
+            
+            <!-- LEFT COLUMN: SETUP & DATA -->
+            <div>
+                <div class="container">
+                    <h2>Setup</h2>
+                    <!-- Add Player -->
+                    <h3>Add New Player</h3>
+                    <label for="playerName">Player Name:</label>
+                    <input type="text" id="playerName" placeholder="e.g., Umaid Ansari">
+                    <label for="playerPhoto">Profile Photo URL (Optional):</label>
+                    <input type="text" id="playerPhoto" placeholder="https://.../photo.jpg">
+                    <button id="addPlayerButton" class="btn-add">Add Player</button>
+                    <p id="playerStatus" style="font-weight: bold;"></p>
+
+                    <!-- Add Captain -->
+                    <h3 style="margin-top: 20px;">Add New Captain</h3>
+                    <label for="teamName">Team Name:</label>
+                    <input type="text" id="teamName" placeholder="e.g., Team Titans">
+                    <label for="captainName">Captain Name:</label>
+                    <input type="text" id="captainName" placeholder="e.g., Rohan">
+                    <!-- NEW: Captain Photo URL -->
+                    <label for="captainPhotoUrl">Captain Photo URL (Optional):</label>
+                    <input type="text" id="captainPhotoUrl" placeholder="https://.../photo.jpg">
+                    <button id="addCaptainButton" class="btn-add">Add Captain</button>
+                    <p id="captainStatus" style="font-weight: bold;"></p>
+
+                    <!-- Import Players -->
+                    <h3 style="margin-top: 20px;">Import Players</h3>
+                    <label for="previousSeasonSelect">1. Load players from season:</label>
+                    <select id="previousSeasonSelect"></select>
+                    <button id="loadPlayersButton" class="btn-load">Load Players</button>
+                    
+                    <div id="importPlayerListContainer" class="player-import-list" style="display: none;">
+                        <!-- Player checkboxes will appear here -->
+                    </div>
+                    <p id="importListStatus"></p>
+
+                    <button id="importPlayersButton" class="btn-import" style="display: none; margin-top: 10px;">Import Selected Players</button>
+                    <p id="importStatus" style="font-weight: bold;"></p>
+
+                    <!-- Archive Season -->
+                    <h3 style="margin-top: 20px;">Archive a Season</h3>
+                    <p style="font-size: 0.9em; color: var(--color-text-dark);">Upload a CSV of a *completed* auction. Requires columns: <strong>PlayerName, SellingPrice, TeamName</strong></p>
+                    <input type="file" id="archiveCsv" accept=".csv">
+                    <button id="uploadArchiveButton" class="btn-archive">Upload Archive</button>
+                    <p id="archiveStatus" style="font-weight: bold;"></p>
+                </div>
+
+                <div class="container" style="margin-top: 20px;">
+                    <h2>Database Live View</h2>
+                    <h3>Players:</h3>
+                    <ul id="playerList"></ul>
+                    <h3>Captains:</h3>
+                    <ul id="captainList"></ul>
+                </div>
+
+                <!-- DANGER ZONE -->
+                <div id="dangerZone" class="container" style="margin-top: 20px;">
+                    <h3>DANGER ZONE</h3>
+                    <button id="clearDataButton" class="btn-danger">Clear All Auction Data (for this season)</button>
+                    <div id="confirmDeleteGroup">
+                        <label for="confirmDeleteText">Type "DELETE" to confirm:</label>
+                        <input type="text" id="confirmDeleteText" placeholder="DELETE">
+                        <button id="confirmDeleteButton" class="btn-danger-confirm">CONFIRM DELETION</button>
+                    </div>
+                    <p id="dangerStatus" style="font-weight: bold;"></p>
+                    
+                    <!-- NEW: Delete Single Player -->
+                    <h3 style="margin-top: 20px;">Delete Single Player</h3>
+                    <label for="deletePlayerSelect">Select Player to PERMANENTLY Delete:</label>
+                    <select id="deletePlayerSelect"></select>
+                    <button id="deletePlayerButton" class="btn-danger-confirm">Delete This Player</button>
+                    <p id="deletePlayerStatus" style="font-weight: bold;"></p>
+
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: AUCTION CONTROLS -->
+            <div>
+                <div class="container" id="auctionContainer">
+                    <h1>Live Auction Control</h1>
+
+                    <!-- NEW: Auction State Control -->
+                    <h2>Step 0: Auction State</h2>
+                    <label for="auctionTime">Set Auction Start Time (for timer):</label>
+                    <input type="datetime-local" id="auctionTime">
+                    <button id="setTimeButton" class="btn-set-time">Set Time</button>
+                    
+                    <!-- NEW: Venue -->
+                    <label for="auctionVenue" style="margin-top: 10px;">Set Auction Venue:</label>
+                    <input type="text" id="auctionVenue" placeholder="e.g., SS Turf, Main Road">
+                    <button id="setVenueButton" class="btn-set-time">Set Venue</button>
+                    
+                    <p id="auctionStateStatus" style="font-weight: bold;"></p>
+                    <hr style="margin: 20px 0;">
+                    <button id="goLiveButton" class="btn-go-live">GO LIVE!</button>
+                    <button id="endAuctionButton" class="btn-end-auction">End Auction (Show Summary)</button>
+                    <!-- END: Auction State Control -->
+
+
+                    <h2 style="margin-top: 20px;">Step 1: Put Player on Block</h2>
+                    <p>Click a button to draw a random player.</p>
+                    <button id="randomPlayerButton" class="btn-random">Put Next Random Player (from Pending)</button>
+                    <button id="randomUnsoldPlayerButton" class="btn-random-unsold">Put Random Player (from Unsold)</button>
+                    
+                    <!-- Secret Toggle and Panel -->
+                    <a id="manualOverrideToggle">[Manual Override]</a>
+                    <div id="manualOverridePanel">
+                        <h3 style="color: var(--color-info);">Manual Selection</h3>
+                        <label>Select any Pending/Unsold player:</label>
+                        <select id="manualPlayerSelect"></select>
+                        <button id="manualPutOnBlockButton" class="btn-manual-block">Put Selected Player on Block</button>
+                    </div>
+
+                    <h2 style="margin-top: 20px;">Step 2: Sell / Pass Player</h2>
+                    <p>Current Player: <strong id="currentPlayerName" style="font-size: 1.5em; color: var(--color-warning);">None</strong></p>
+                    <label for="sellingPrice">Selling Price:</label>
+                    <input type="number" id="sellingPrice" step="0.1" placeholder="Enter winning bid (e.g., 2.5)">
+                    <label for="captainSelect">Winning Captain:</label>
+                    <select id="captainSelect"></select>
+                    <button id="sellPlayerButton" class="btn-sell">SELL PLAYER</button>
+                    <button id="passPlayerButton" class="btn-pass">PASS PLAYER (UNSOLD)</button>
+                    
+                    <h2 style="margin-top: 20px;">Step 3: Correct a Mistake</h2>
+                    <label>Select Sold Player to Revert:</label>
+                    <select id="soldPlayerSelect"></select>
+                    <button id="revertSaleButton" class="btn-delete">Revert Sale (Undo)</button>
+                    
+                    <p id="auctionStatus" style="font-weight: bold;"></p>
+                </div>
+
+                <!-- COMPLETE AUCTION SECTION -->
+                <div class="container" id="completeContainer" style="margin-top: 20px;">
+                    <h2>Step 4: Complete Auction</h2>
+                    <p>Generate a PDF of all final squads and prices.</p>
+                    <button id="generatePdfButton" class="btn-pdf">Generate Squad PDF</button>
+                    <p id="pdfStatus" style="font-weight: bold;"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Delete Season Confirmation Modal -->
+    <div id="confirmDeleteSeasonModal" class="modal-overlay">
+        <div class="modal-box">
+            <h2>Delete Season</h2>
+            <p>This is permanent and will delete all players and captains in this season. To confirm, type the season name below:</p>
+            <p style="font-weight: bold; font-size: 1.2em; color: var(--color-danger);" id="seasonNameToDelete"></p>
+            <input type="text" id="confirmDeleteSeasonText" placeholder="Type season name...">
+            <button id="confirmDeleteSeasonButton" class="btn-danger-confirm">CONFIRM DELETION</button>
+            <button id="cancelDeleteSeasonButton" class="btn-info" style="margin-top: 10px;">Cancel</button>
+            <p id="deleteSeasonStatus" style="font-weight: bold;"></p>
+        </div>
+    </div>
+    
+    <!-- NEW: Delete Player Confirmation Modal -->
+    <div id="confirmDeletePlayerModal" class="modal-overlay">
+        <div class="modal-box">
+            <h2>Delete Player</h2>
+            <p>Are you sure you want to permanently delete this player? If they are "Sold," their price will be refunded to the captain.</p>
+            <p style="font-weight: bold; font-size: 1.2em; color: var(--color-danger);" id="playerNameToDelete"></p>
+            <button id="confirmDeletePlayerButton" class="btn-danger-confirm">Yes, Delete This Player</button>
+            <button id="cancelDeletePlayerButton" class="btn-info" style="margin-top: 10px;">Cancel</button>
+            <p id="deletePlayerModalStatus" style="font-weight: bold;"></p>
+        </div>
+    </div>
+
+
+    <!-- Import Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        // *** ADD AUTHENTICATION MODULES ***
+        import { 
+            getAuth, 
+            onAuthStateChanged, 
+            signInWithEmailAndPassword, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { 
+            getFirestore, collection, onSnapshot, doc, getDoc, updateDoc, addDoc, setDoc, deleteDoc, getDocs, writeBatch, query, where, orderBy
+        } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // *** NEW CONFIG ***
+        const firebaseConfig = {
+          apiKey: "AIzaSyC91UTf9dvTTOBnqkWUWktZrMTyQCNwVdI",
+          authDomain: "ss-rt-auction.firebaseapp.com",
+          projectId: "ss-rt-auction",
+          storageBucket: "ss-rt-auction.firebasestorage.app",
+          messagingSenderId: "206394886627",
+          appId: "1:206394886627:web:7ea9cebb2e09d2e13378d6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); // NEW: Initialize Auth
+
+        // --- NEW: Global State ---
+        let selectedSeasonId = null;
+        let selectedSeasonName = "";
+        let playerListener = null; // To unsubscribe
+        let captainListener = null; // To unsubscribe
+        let allSeasonsCache = []; // NEW: Cache for previous season dropdown
+        
+        // *** BUG FIX: Declare variables in the global module scope ***
+        let currentPlayerOnBlockId = null; 
+        let lastPlayerOnBlockStatus = "Pending"; 
+
+        // --- NEW: Get HTML Elements for Panels ---
+        const loginContainer = document.getElementById("loginContainer"); // NEW
+        const seasonSelectorContainer = document.getElementById("seasonSelectorContainer");
+        const mainAdminPanel = document.getElementById("mainAdminPanel");
+        const currentSeasonName = document.getElementById("currentSeasonName");
+        const seasonList = document.getElementById("seasonList");
+        const seasonListStatus = document.getElementById("seasonListStatus");
+        const createSeasonButton = document.getElementById("createSeasonButton");
+        const newSeasonNameInput = document.getElementById("newSeasonName");
+        const createSeasonStatus = document.getElementById("createSeasonStatus");
+        const backToSeasonsButton = document.getElementById("backToSeasonsButton");
+
+        // --- NEW: Import Player Elements ---
+        const previousSeasonSelect = document.getElementById("previousSeasonSelect");
+        const loadPlayersButton = document.getElementById("loadPlayersButton");
+        const importPlayerListContainer = document.getElementById("importPlayerListContainer");
+        const importListStatus = document.getElementById("importListStatus");
+        const importPlayersButton = document.getElementById("importPlayersButton");
+        const importStatus = document.getElementById("importStatus");
+        
+        // --- NEW: Archive Elements ---
+        const archiveCsvInput = document.getElementById("archiveCsv");
+        const uploadArchiveButton = document.getElementById("uploadArchiveButton");
+        const archiveStatus = document.getElementById("archiveStatus");
+
+        // --- NEW: Delete Season Modal Elements ---
+        const deleteSeasonModal = document.getElementById("confirmDeleteSeasonModal");
+        const seasonNameToDelete = document.getElementById("seasonNameToDelete");
+        const confirmDeleteSeasonText = document.getElementById("confirmDeleteSeasonText");
+        const confirmDeleteSeasonButton = document.getElementById("confirmDeleteSeasonButton");
+        const cancelDeleteSeasonButton = document.getElementById("cancelDeleteSeasonButton");
+        const deleteSeasonStatus = document.getElementById("deleteSeasonStatus");
+        let seasonIdToDelete = null; 
+
+        // --- NEW: Delete Player Modal Elements ---
+        const deletePlayerModal = document.getElementById("confirmDeletePlayerModal");
+        const playerNameToDelete = document.getElementById("playerNameToDelete");
+        const confirmDeletePlayerButton = document.getElementById("confirmDeletePlayerButton");
+        const cancelDeletePlayerButton = document.getElementById("cancelDeletePlayerButton");
+        const deletePlayerModalStatus = document.getElementById("deletePlayerModalStatus");
+        let playerIdToDelete = null; 
+        let playerToDeleteData = null; 
+
+        // --- NEW: Secret Panel Elements ---
+        const manualOverrideToggle = document.getElementById("manualOverrideToggle");
+        const manualOverridePanel = document.getElementById("manualOverridePanel");
+        const manualPlayerSelect = document.getElementById("manualPlayerSelect");
+        const manualPutOnBlockButton = document.getElementById("manualPutOnBlockButton");
+
+        // --- NEW: Auction State Elements ---
+        const auctionTimeInput = document.getElementById("auctionTime");
+        const setTimeButton = document.getElementById("setTimeButton");
+        const goLiveButton = document.getElementById("goLiveButton");
+        const endAuctionButton = document.getElementById("endAuctionButton");
+        const auctionStateStatus = document.getElementById("auctionStateStatus");
+        const auctionVenueInput = document.getElementById("auctionVenue"); // NEW
+        const setVenueButton = document.getElementById("setVenueButton"); // NEW
+
+        // --- Get HTML Elements ---
+        const playerStatus = document.getElementById("playerStatus");
+        const captainStatus = document.getElementById("captainStatus");
+        const auctionStatus = document.getElementById("auctionStatus");
+        const currentPlayerName = document.getElementById("currentPlayerName");
+        const pdfStatus = document.getElementById("pdfStatus");
+        const playerList = document.getElementById("playerList");
+        const captainList = document.getElementById("captainList");
+        const soldPlayerSelect = document.getElementById("soldPlayerSelect"); 
+        const captainSelect = document.getElementById("captainSelect");
+        const captainPhotoUrlInput = document.getElementById("captainPhotoUrl"); 
+        
+        // --- NEW: Delete Player Elements ---
+        const deletePlayerSelect = document.getElementById("deletePlayerSelect");
+        const deletePlayerButton = document.getElementById("deletePlayerButton");
+        const deletePlayerStatus = document.getElementById("deletePlayerStatus");
+        
+        // --- NEW: Get Button Elements for Disabling ---
+        const randomPlayerButton = document.getElementById("randomPlayerButton");
+        const randomUnsoldPlayerButton = document.getElementById("randomUnsoldPlayerButton");
+        // const manualPutOnBlockButton = document.getElementById("manualPutOnBlockButton"); // <-- BUG FIX: Already declared
+        const sellPlayerButton = document.getElementById("sellPlayerButton");
+        const passPlayerButton = document.getElementById("passPlayerButton");
+
+        // --- NEW: Login Elements ---
+        const loginButton = document.getElementById("loginButton");
+        const adminEmailInput = document.getElementById("adminEmail");
+        const adminPasswordInput = document.getElementById("adminPassword");
+        const loginStatus = document.getElementById("loginStatus");
+        const logoutButton = document.getElementById("logoutButton");
+        const logoutButtonMain = document.getElementById("logoutButtonMain");
+
+        // --- NEW: Auth Logic ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in
+                loginContainer.style.display = "none";
+                seasonSelectorContainer.style.display = "block";
+                mainAdminPanel.style.display = "none";
+            } else {
+                // User is signed out
+                loginContainer.style.display = "block";
+                seasonSelectorContainer.style.display = "none";
+                mainAdminPanel.style.display = "none";
+            }
+        });
+
+        loginButton.addEventListener("click", async () => {
+            const email = adminEmailInput.value;
+            const password = adminPasswordInput.value;
+            loginStatus.innerText = "Logging in...";
+            loginStatus.style.color = "var(--color-text-dark)";
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                loginStatus.innerText = "";
+            } catch (error) {
+                console.error("Login error: ", error.message);
+                loginStatus.innerText = "Login Failed: " + error.message;
+                loginStatus.style.color = "var(--color-danger)";
+            }
+        });
+
+        async function logout() {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Sign out error: ", error);
+            }
+        }
+        logoutButton.addEventListener("click", logout);
+        logoutButtonMain.addEventListener("click", logout);
+
+        // --- NEW: Function to manage button states ---
+        function updateButtonStates() {
+            const playerIsOnBlock = (currentPlayerOnBlockId !== null);
+
+            // Disable "start" buttons if a player is on the block
+            randomPlayerButton.disabled = playerIsOnBlock;
+            randomUnsoldPlayerButton.disabled = playerIsOnBlock;
+            manualPutOnBlockButton.disabled = playerIsOnBlock;
+
+            // Disable "sell/pass" buttons if no player is on the block
+            sellPlayerButton.disabled = !playerIsOnBlock;
+            passPlayerButton.disabled = !playerIsOnBlock;
+        }
+
+        // --- NEW: Function to load a season ---
+        function loadSeason(seasonId, seasonName) {
+            selectedSeasonId = seasonId;
+            selectedSeasonName = seasonName;
+            
+            // Update UI
+            currentSeasonName.innerText = `Managing: ${seasonName}`;
+            seasonSelectorContainer.style.display = "none";
+            mainAdminPanel.style.display = "block";
+
+            // Detach old listeners if they exist
+            if (playerListener) playerListener();
+            if (captainListener) captainListener();
+
+            // --- Populate Previous Season Dropdown ---
+            previousSeasonSelect.innerHTML = '<option value="">-- Select a season --</option>';
+            allSeasonsCache.forEach(season => {
+                if (season.id !== selectedSeasonId) { // Don't allow importing from self
+                    const option = document.createElement("option");
+                    option.value = season.id;
+                    option.textContent = season.name;
+                    previousSeasonSelect.appendChild(option);
+                }
+            });
+
+            // --- Attach Live Listeners for the *selected season* ---
+            const playersColRef = collection(db, "seasons", selectedSeasonId, "players");
+            const captainsColRef = collection(db, "seasons", selectedSeasonId, "captains");
+
+            // Live update players
+            playerListener = onSnapshot(playersColRef, (snapshot) => {
+                playerList.innerHTML = "";
+                soldPlayerSelect.innerHTML = '<option value="">-- Select Sold Player --</option>'; 
+                manualPlayerSelect.innerHTML = '<option value="">-- Select Player Manually --</option>'; 
+                deletePlayerSelect.innerHTML = '<option value="">-- Select Player to Delete --</option>'; // NEW
+                
+                snapshot.forEach(doc => {
+                    const player = doc.data();
+                    const li = document.createElement("li");
+                    li.innerHTML = `${player.name} (<span class="status-${player.status}">${player.status}</span>)`;
+                    playerList.appendChild(li);
+
+                    // NEW: Populate deletePlayerSelect
+                    const delOption = document.createElement("option");
+                    delOption.value = doc.id; 
+                    delOption.textContent = `${player.name} (${player.status})`;
+                    delOption.dataset.playerData = JSON.stringify(player); // Store all data
+                    deletePlayerSelect.appendChild(delOption);
+                    
+                    if (player.status === "Sold") { 
+                        const option = document.createElement("option");
+                        option.value = doc.id; 
+                        option.textContent = `${player.name} (${player.sellingPrice} pts)`;
+                        soldPlayerSelect.appendChild(option);
+                    } else if (player.status === "Pending" || player.status === "Unsold") {
+                        const option = document.createElement("option");
+                        option.value = doc.id; 
+                        option.textContent = `${player.name} (${player.status})`;
+                        option.dataset.status = player.status; // Store status
+                        manualPlayerSelect.appendChild(option);
+                    }
+                });
+            });
+
+            // Live update captains
+            captainListener = onSnapshot(captainsColRef, (snapshot) => {
+                captainList.innerHTML = "";
+                captainSelect.innerHTML = '<option value="">-- Select Winning Captain --</option>';
+                snapshot.forEach(doc => {
+                    const captain = doc.data();
+                    const li = document.createElement("li");
+                    li.textContent = `${captain.teamName} - ${captain.pointsRemaining} pts`;
+                    captainList.appendChild(li);
+                    
+                    const option = document.createElement("option");
+                    option.value = doc.id; 
+                    option.textContent = `${captain.teamName} (${captain.pointsRemaining} pts)`;
+                    captainSelect.appendChild(option);
+                });
+            });
+            
+            // --- NEW: Load current auction settings ---
+            const auctionSettingsRef = doc(db, "seasons", selectedSeasonId, "auction_settings", "live_controls");
+            getDoc(auctionSettingsRef).then(docSnap => {
+                if (docSnap.exists()) {
+                    const settings = docSnap.data();
+                    if(settings.auctionStartTime) {
+                        // Convert ISO string back to datetime-local format
+                        auctionTimeInput.value = settings.auctionStartTime.slice(0, 16);
+                    }
+                    if(settings.auctionVenue) { // NEW
+                        auctionVenueInput.value = settings.auctionVenue;
+                    }
+                    const state = settings.auctionState || "Pending";
+                    auctionStateStatus.innerText = `Current State: ${state}`;
+                    auctionStateStatus.style.color = state === "Live" ? "var(--color-success)" : "var(--color-text-dark)";
+                }
+            });
+
+            // --- NEW: Set initial button state ---
+            currentPlayerOnBlockId = null; // Ensure it's reset
+            currentPlayerName.innerText = "None";
+            updateButtonStates();
+        }
+        
+        // --- NEW: Load Seasons on Page Load ---
+        const seasonsColRef = collection(db, "seasons");
+        onSnapshot(query(seasonsColRef, orderBy("createdAt", "desc")), (snapshot) => {
+            seasonList.innerHTML = "";
+            allSeasonsCache = []; // Clear cache
+            if (snapshot.empty) {
+                seasonListStatus.innerText = "No seasons found. Create one below!";
+                return;
+            }
+            seasonListStatus.innerText = "";
+            snapshot.forEach(doc => {
+                const season = doc.data();
+                const seasonId = doc.id;
+                allSeasonsCache.push({ id: seasonId, name: season.name }); // Add to cache
+
+                // Create the list item
+                const itemDiv = document.createElement("div");
+                itemDiv.className = "season-item";
+
+                const button = document.createElement("button");
+                button.className = "season-button";
+                button.innerText = season.name;
+                button.onclick = () => {
+                    loadSeason(seasonId, season.name);
+                };
+                
+                const deleteButton = document.createElement("button");
+                deleteButton.className = "btn-delete-season";
+                deleteButton.innerText = "X";
+                deleteButton.onclick = () => {
+                    openDeleteSeasonModal(seasonId, season.name);
+                };
+
+                itemDiv.appendChild(button);
+                itemDiv.appendChild(deleteButton);
+                seasonList.appendChild(itemDiv);
+            });
+        });
+        
+        // --- NEW: Create Season Button ---
+        createSeasonButton.addEventListener("click", async () => {
+            const seasonName = newSeasonNameInput.value;
+            if (!seasonName) {
+                createSeasonStatus.innerText = "Please enter a name.";
+                createSeasonStatus.style.color = "var(--color-danger)";
+                return;
+            }
+            try {
+                const newSeasonDoc = await addDoc(seasonsColRef, {
+                    name: seasonName,
+                    status: "active",
+                    createdAt: new Date() // Use server timestamp later if needed
+                });
+                
+                // Automatically create the sub-collection doc
+                const auctionSettingsRef = doc(db, "seasons", newSeasonDoc.id, "auction_settings", "live_controls");
+                await setDoc(auctionSettingsRef, { 
+                    currentPlayerOnBlockId: "",
+                    auctionState: "Pending", // Default state
+                    auctionStartTime: "", // Default time
+                    auctionVenue: "" // Default venue
+                });
+
+                newSeasonNameInput.value = "";
+                createSeasonStatus.innerText = `Created ${seasonName}! Loading...`;
+                createSeasonStatus.style.color = "var(--color-success)";
+                
+                // Load the new season
+                loadSeason(newSeasonDoc.id, seasonName);
+
+            } catch(e) {
+                console.error("Error creating season: ", e);
+                createSeasonStatus.innerText = "Error creating season.";
+                createSeasonStatus.style.color = "var(--color-danger)";
+            }
+        });
+
+        // --- NEW: Back to Seasons Button ---
+        backToSeasonsButton.addEventListener("click", () => {
+            // Unsubscribe from listeners
+            if (playerListener) playerListener();
+            if (captainListener) captainListener();
+
+            // Reset state
+            selectedSeasonId = null;
+            selectedSeasonName = "";
+            
+            // Toggle UI
+            mainAdminPanel.style.display = "none";
+            seasonSelectorContainer.style.display = "block";
+            
+            // Clear import list
+            importPlayerListContainer.style.display = "none";
+            importPlayerListContainer.innerHTML = "";
+            importPlayersButton.style.display = "none";
+            importStatus.innerText = "";
+            importListStatus.innerText = "";
+        });
+
+        // --- NEW: Import Players Button Logic ---
+        
+        // 1. Load Players into Checklist
+        loadPlayersButton.addEventListener("click", async () => {
+            const sourceSeasonId = previousSeasonSelect.value;
+            if (!sourceSeasonId) {
+                importListStatus.innerText = "Please select a season to load.";
+                importListStatus.style.color = "var(--color-danger)";
+                return;
+            }
+            
+            importListStatus.innerText = "Loading players...";
+            importListStatus.style.color = "var(--color-text-dark)";
+            importPlayerListContainer.innerHTML = "";
+            
+            try {
+                const sourcePlayersRef = collection(db, "seasons", sourceSeasonId, "players");
+                const playerSnapshot = await getDocs(sourcePlayersRef);
+
+                if (playerSnapshot.empty) {
+                    importListStatus.innerText = "Source season has no players.";
+                    importListStatus.style.color = "var(--color-warning)";
+                    importPlayerListContainer.style.display = "none";
+                    importPlayersButton.style.display = "none";
+                    return;
+                }
+
+                playerSnapshot.forEach(doc => {
+                    const player = doc.data();
+                    const itemDiv = document.createElement("div");
+                    itemDiv.className = "player-import-item";
+                    
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.className = "player-import-checkbox";
+                    // Store player data in dataset
+                    checkbox.dataset.name = player.name;
+                    checkbox.dataset.photourl = player.profilePhotoUrl || "";
+                    
+                    const label = document.createElement("label");
+                    label.textContent = player.name;
+                    
+                    itemDiv.appendChild(checkbox);
+                    itemDiv.appendChild(label);
+                    importPlayerListContainer.appendChild(itemDiv);
+                });
+                
+                importPlayerListContainer.style.display = "block";
+                importPlayersButton.style.display = "block";
+                importListStatus.innerText = `Showing ${playerSnapshot.size} players. Select and import.`;
+                importListStatus.style.color = "var(--color-success)";
+
+            } catch (e) {
+                console.error("Error loading players: ", e);
+                importListStatus.innerText = "Error loading players.";
+                importListStatus.style.color = "var(--color-danger)";
+            }
+        });
+
+        // 2. Import Selected Players
+        importPlayersButton.addEventListener("click", async () => {
+            const selectedPlayers = document.querySelectorAll('.player-import-checkbox:checked');
+            
+            if (selectedPlayers.length === 0) {
+                importStatus.innerText = "No players selected.";
+                importStatus.style.color = "var(--color-danger)";
+                return;
+            }
+
+            importStatus.innerText = "Importing players... Please wait.";
+            importStatus.style.color = "var(--color-text-dark)";
+            importPlayersButton.disabled = true;
+
+            try {
+                const targetPlayersRef = collection(db, "seasons", selectedSeasonId, "players");
+                const batch = writeBatch(db);
+
+                selectedPlayers.forEach(checkbox => {
+                    const newPlayer = {
+                        name: checkbox.dataset.name,
+                        profilePhotoUrl: checkbox.dataset.photourl,
+                        basePrice: 1,
+                        status: "Pending", // Always add as Pending
+                        sellingPrice: 0,
+                        soldToCaptainId: ""
+                    };
+                    const newPlayerRef = doc(targetPlayersRef); // Create new doc in target season
+                    batch.set(newPlayerRef, newPlayer);
+                });
+
+                await batch.commit();
+
+                importStatus.innerText = `Success! Imported ${selectedPlayers.length} players.`;
+                importStatus.style.color = "var(--color-success)";
+                
+                // Clear and hide list
+                importPlayerListContainer.style.display = "none";
+                importPlayerListContainer.innerHTML = "";
+                importPlayersButton.style.display = "none";
+                importListStatus.innerText = "";
+                previousSeasonSelect.value = "";
+
+            } catch (e) {
+                console.error("Error importing players: ", e);
+                importStatus.innerText = "Error importing players.";
+                importStatus.style.color = "var(--color-danger)";
+            }
+            importPlayersButton.disabled = false;
+        });
+
+
+        // --- Add Player Logic (Refactored) ---
+        document.getElementById("addPlayerButton").addEventListener("click", async () => {
+            const name = document.getElementById("playerName").value;
+            if (!name) return;
+            const newPlayer = {
+                name: name,
+                profilePhotoUrl: document.getElementById("playerPhoto").value,
+                basePrice: 1,
+                status: "Pending", 
+                sellingPrice: 0,
+                soldToCaptainId: ""
+            };
+            try {
+                // Use selectedSeasonId in the path
+                await addDoc(collection(db, "seasons", selectedSeasonId, "players"), newPlayer);
+                playerStatus.innerText = `Added ${name}!`;
+                playerStatus.style.color = "var(--color-success)";
+                document.getElementById("playerName").value = "";
+                document.getElementById("playerPhoto").value = "";
+            } catch (e) { playerStatus.innerText = "Error"; playerStatus.style.color = "var(--color-danger)"; }
+        });
+
+        // --- Add Captain Logic (Refactored) ---
+        document.getElementById("addCaptainButton").addEventListener("click", async () => {
+            const teamName = document.getElementById("teamName").value;
+            if (!teamName) return;
+            // NEW: Get captain photo URL
+            const newCaptain = {
+                teamName: teamName,
+                captainName: document.getElementById("captainName").value,
+                captainPhotoUrl: document.getElementById("captainPhotoUrl").value || "",
+                pointsRemaining: 100
+            };
+            try {
+                // Use selectedSeasonId in the path
+                await addDoc(collection(db, "seasons", selectedSeasonId, "captains"), newCaptain);
+                captainStatus.innerText = `Added ${teamName}!`;
+                captainStatus.style.color = "var(--color-success)";
+                document.getElementById("teamName").value = "";
+                document.getElementById("captainName").value = "";
+                document.getElementById("captainPhotoUrl").value = ""; // Clear photo field
+            } catch (e) { captainStatus.innerText = "Error"; captainStatus.style.color = "var(--color-danger)"; }
+        });
+
+
+        // --- Live Auction Control Logic (Refactored paths) ---
+        
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; 
+            }
+        }
+
+        async function runRandomSelectionAnimation(players) {
+            shuffleArray(players); 
+            const animationDuration = 1000; // *** FASTER ANIMATION ***
+            const spinTime = 100; // *** FASTER SPIN ***
+            let elapsed = 0;
+            
+            // --- NEW: Write shuffling to database ---
+            const auctionSettingsRef = doc(db, "seasons", selectedSeasonId, "auction_settings", "live_controls");
+            
+            while (elapsed < animationDuration) {
+                const randomIndex = Math.floor(Math.random() * players.length);
+                currentPlayerName.innerText = players[randomIndex].name;
+                // Update Firestore so the frontend can see the shuffle
+                await setDoc(auctionSettingsRef, { shufflingPlayerName: players[randomIndex].name }, { merge: true });
+                await sleep(spinTime);
+                elapsed += spinTime;
+            }
+            
+            const winner = players[0]; 
+            currentPlayerName.innerText = winner.name;
+            return winner;
+        }
+
+        async function putPlayerOnBlock(playerId, playerName, comingFromStatus) {
+            if (!playerId) return;
+            try {
+                const auctionSettingsRef = doc(db, "seasons", selectedSeasonId, "auction_settings", "live_controls");
+                const playerRef = doc(db, "seasons", selectedSeasonId, "players", playerId);
+                
+                if (currentPlayerOnBlockId && currentPlayerOnBlockId !== playerId) {
+                    const oldPlayerRef = doc(db, "seasons", selectedSeasonId, "players", currentPlayerOnBlockId);
+                    await updateDoc(oldPlayerRef, { status: lastPlayerOnBlockStatus });
+                }
+
+                await updateDoc(playerRef, { status: "OnBlock" });
+                // --- NEW: Clear shuffling field and set final player ---
+                await setDoc(auctionSettingsRef, { 
+                    currentPlayerOnBlockId: playerId,
+                    shufflingPlayerName: "" // Clear the shuffle field
+                }, { merge: true });
+                
+                currentPlayerOnBlockId = playerId; 
+                lastPlayerOnBlockStatus = comingFromStatus; 
+                currentPlayerName.innerText = playerName; 
+                auctionStatus.innerText = `ON BLOCK: ${playerName}`;
+                auctionStatus.style.color = "var(--color-warning)";
+                
+                updateButtonStates(); // <-- Disable "start" buttons
+                
+            } catch (e) {
+                console.error("Error putting player on block: ", e);
+                auctionStatus.innerText = "Error.";
+                auctionStatus.style.color = "var(--color-danger)";
+            }
+        }
+
+        // --- NEW: Auction State Button Logic ---
+        setTimeButton.addEventListener("click", async () => {
+            const auctionTime = auctionTimeInput.value;
+            if (!auctionTime) {
+                auctionStateStatus.innerText = "Please select a date and time.";
+                auctionStateStatus.style.color = "var(--color-danger)";
+                return;
+            }
+            // Convert local time to ISO 8601 string
+            const isoTime = new Date(auctionTime).toISOString();
+            
+            const auctionSettingsRef = doc(db, "seasons", selectedSeasonId, "auction_settings", "live_controls");
+            try {
+                await setDoc(auctionSettingsRef, { auctionStartTime: isoTime }, { merge: true });
+                auctionStateStatus.innerText = "Timer set successfully!";
+                auctionStateStatus.style.color = "var(--color-success)";
+            } catch (e) {
+                auctionStateStatus.innerText = "Error setting time.";
+                auctionStateStatus.style.color = "var(--color-danger)";
+            }
+        });
+
+        // --- NEW: Set Venue Button ---
+        setVenueButton.addEventListener("click", async () => {
+            const auctionVenue = auctionVenueInput.value;
+            if (!auctionVenue) {
+                auctionStateStatus.innerText = "Please enter a venue.";
+                auctionStateStatus.style.color = "var(--color-danger)";
+                return;
+            }
+            
+            const auctionSettingsRef = doc(db, "seasons", selectedSeasonId, "auction_settings", "live_controls");
+            try {
+                await setDoc(auctionSettingsRef, { auctionVenue: auctionVenue }, { merge: true });
+                auctionStateStatus.innerText = "Venue set successfully!";
+                auctionStateStatus.style.color = "var(--color-success)";
+            } catch (e) {
+                auctionStateStatus.innerText = "Error setting venue.";
+                auctionStateStatus.style.color = "var(--color-danger)";
+            }
+        });
+        
+        goLiveButton.addEventListener("click", async () => {
+            const auctionSettingsRef = doc(db, "seasons", selectedSeasonId, "auction_settings", "live_controls");
+            try {
+                await setDoc(auctionSettingsRef, { auctionState: "Live" }, { merge: true });
+                auctionStateStatus.innerText = "Current State: Live";
+                auctionStateStatus.style.color = "var(--color-success)";
+            } catch (e) {
+                auctionStateStatus.innerText = "Error going live.";
+                auctionStateStatus.style.color = "var(--color-danger)";
+            }
+        });
+
+        endAuctionButton.addEventListener("click", async () => {
+            const auctionSettingsRef = doc(db, "seasons", selectedSeasonId, "auction_settings", "live_controls");
+            try {
+                await setDoc(auctionSettingsRef, { auctionState: "Ended", currentPlayerOnBlockId: "", shufflingPlayerName: "" }, { merge: true });
+                auctionStateStatus.innerText = "Current State: Ended";
+                auctionStateStatus.style.color = "var(--color-text-dark)";
+                currentPlayerName.innerText = "None";
+                currentPlayerOnBlockId = null;
+                updateButtonStates(); // <-- Re-enable "start" buttons
+            } catch (e) {
+                auctionStateStatus.innerText = "Error ending auction.";
+                auctionStateStatus.style.color = "var(--color-danger)";
+            }
+        });
+        
+
+        // --- Random Player Buttons ---
+        randomPlayerButton.addEventListener("click", async () => {
+            auctionStatus.innerText = "Finding random player...";
+            auctionStatus.style.color = "var(--color-text-dark)";
+
+            try {
+                const playersRef = collection(db, "seasons", selectedSeasonId, "players");
+                const q = query(playersRef, where("status", "==", "Pending"));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    auctionStatus.innerText = "No more pending players left!";
+                    auctionStatus.style.color = "var(--color-danger)";
+                    return;
+                }
+
+                const pendingPlayers = [];
+                querySnapshot.forEach(doc => {
+                    pendingPlayers.push({ id: doc.id, name: doc.data().name });
+                });
+
+                // Disable buttons *before* animation
+                randomPlayerButton.disabled = true;
+                randomUnsoldPlayerButton.disabled = true;
+                manualPutOnBlockButton.disabled = true;
+
+                const winner = await runRandomSelectionAnimation(pendingPlayers);
+                putPlayerOnBlock(winner.id, winner.name, "Pending");
+
+            } catch (e) {
+                console.error("Error finding random player: ", e);
+                auctionStatus.innerText = "Error finding player.";
+                auctionStatus.style.color = "var(--color-danger)";
+                updateButtonStates(); // Re-enable on error
+            }
+            // Note: Don't re-enable buttons here, putPlayerOnBlock handles it
+        });
+
+        randomUnsoldPlayerButton.addEventListener("click", async () => {
+            auctionStatus.innerText = "Finding random unsold player...";
+            auctionStatus.style.color = "var(--color-text-dark)";
+
+            try {
+                const playersRef = collection(db, "seasons", selectedSeasonId, "players");
+                const q = query(playersRef, where("status", "==", "Unsold"));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    auctionStatus.innerText = "No unsold players to re-auction.";
+                    auctionStatus.style.color = "var(--color-danger)";
+                    return;
+                }
+
+                const unsoldPlayers = [];
+                querySnapshot.forEach(doc => {
+                    unsoldPlayers.push({ id: doc.id, name: doc.data().name });
+                });
+
+                // Disable buttons *before* animation
+                randomPlayerButton.disabled = true;
+                randomUnsoldPlayerButton.disabled = true;
+                manualPutOnBlockButton.disabled = true;
+
+                const winner = await runRandomSelectionAnimation(unsoldPlayers);
+                putPlayerOnBlock(winner.id, winner.name, "Unsold");
+
+            } catch (e) {
+                console.error("Error finding random player: ", e);
+                auctionStatus.innerText = "Error finding player.";
+                auctionStatus.style.color = "var(--color-danger)";
+            }
+            // Note: Don't re-enable buttons here, putPlayerOnBlock handles it
+        });
+
+        // --- Secret Panel Logic ---
+        manualOverrideToggle.addEventListener("click", () => {
+            const panel = manualOverridePanel;
+            if (panel.style.display === "none" || panel.style.display === "") {
+                panel.style.display = "block";
+                manualOverrideToggle.innerText = "[Hide Manual Override]";
+            } else {
+                panel.style.display = "none";
+                manualOverrideToggle.innerText = "[Manual Override]";
+            }
+        });
+
+        manualPutOnBlockButton.addEventListener("click", () => {
+            const playerId = manualPlayerSelect.value;
+            if (!playerId) return;
+
+            const selectedOption = manualPlayerSelect.options[manualPlayerSelect.selectedIndex];
+            const playerName = selectedOption.text.split(' (')[0]; // Get name before status
+            const playerStatus = selectedOption.dataset.status;
+
+            putPlayerOnBlock(playerId, playerName, playerStatus);
+        });
+
+
+        // Button 3: Sell Player
+        document.getElementById("sellPlayerButton").addEventListener("click", async () => {
+            auctionStatus.innerText = "";
+            const auctionSettingsRef = doc(db, "seasons", selectedSeasonId, "auction_settings", "live_controls");
+            
+            const captainId = captainSelect.value;
+            const price = parseFloat(document.getElementById("sellingPrice").value);
+
+            if (!currentPlayerOnBlockId) { 
+                auctionStatus.innerText = "Error: No player is on the block.";
+                auctionStatus.style.color = "var(--color-danger)";
+                return;
+            }
+            if (!captainId || !price || price <= 0) {
+                auctionStatus.innerText = "Error: Select captain and set a valid price.";
+                auctionStatus.style.color = "var(--color-danger)";
+                return;
+            }
+
+            const captainRef = doc(db, "seasons", selectedSeasonId, "captains", captainId);
+            const captainDoc = await getDoc(captainRef);
+            const captainData = captainDoc.data();
+            const currentPoints = captainData.pointsRemaining;
+
+            if (currentPoints < price) {
+                auctionStatus.innerText = `Error: ${captainData.teamName} only has ${currentPoints} pts.`;
+                auctionStatus.style.color = "var(--color-danger)";
+                return;
+            }
+
+            try {
+                const playerRef = doc(db, "seasons", selectedSeasonId, "players", currentPlayerOnBlockId);
+                await updateDoc(playerRef, {
+                    status: "Sold",
+                    sellingPrice: price,
+                    soldToCaptainId: captainId
+                });
+                await updateDoc(captainRef, {
+                    pointsRemaining: currentPoints - price
+                });
+
+                auctionStatus.innerText = `SOLD! ${currentPlayerName.innerText} to ${captainData.teamName} for ${price} pts.`;
+                auctionStatus.style.color = "var(--color-success)";
+                
+                currentPlayerOnBlockId = null;
+                currentPlayerName.innerText = "None";
+                document.getElementById("sellingPrice").value = "";
+                await setDoc(auctionSettingsRef, { currentPlayerOnBlockId: "", shufflingPlayerName: "" }, { merge: true }); 
+                updateButtonStates(); // <-- Re-enable "start" buttons
+
+            } catch (error) {
+                console.error("Error selling player: ", error);
+                auctionStatus.innerText = "Error: Could not process sale.";
+                auctionStatus.style.color = "var(--color-danger)";
+            }
+        });
+
+        // Button 4: Pass Player
+        document.getElementById("passPlayerButton").addEventListener("click", async () => {
+            if (!currentPlayerOnBlockId) {
+                auctionStatus.innerText = "Error: No player is on the block.";
+                auctionStatus.style.color = "var(--color-danger)";
+                return;
+            }
+
+            try {
+                const playerRef = doc(db, "seasons", selectedSeasonId, "players", currentPlayerOnBlockId);
+                await updateDoc(playerRef, {
+                    status: "Unsold"
+                });
+
+                auctionStatus.innerText = `${currentPlayerName.innerText} is UNSOLD.`;
+                auctionStatus.style.color = "var(--color-danger)";
+
+                currentPlayerOnBlockId = null;
+                currentPlayerName.innerText = "None";
+                document.getElementById("sellingPrice").value = "";
+                const auctionSettingsRef = doc(db, "seasons", selectedSeasonId, "auction_settings", "live_controls");
+                await setDoc(auctionSettingsRef, { currentPlayerOnBlockId: "", shufflingPlayerName: "" }, { merge: true }); 
+                updateButtonStates(); // <-- Re-enable "start" buttons
+
+            } catch (error) {
+                console.error("Error passing player: ", error);
+                auctionStatus.innerText = "Error: Could not pass player.";
+                auctionStatus.style.color = "var(--color-danger)";
+            }
+        });
+
+        // --- REVERT SALE BUTTON LOGIC ---
+        document.getElementById("revertSaleButton").addEventListener("click", async () => {
+            auctionStatus.innerText = "Processing revert...";
+            auctionStatus.style.color = "var(--color-text-dark)";
+
+            const playerId = soldPlayerSelect.value;
+            if (!playerId) {
+                auctionStatus.innerText = "Error: Select a sold player to revert.";
+                auctionStatus.style.color = "var(--color-danger)";
+                return;
+            }
+
+            try {
+                const playerRef = doc(db, "seasons", selectedSeasonId, "players", playerId);
+                const playerDoc = await getDoc(playerRef);
+                const playerData = playerDoc.data();
+
+                if (!playerData || playerData.status !== "Sold") {
+                    auctionStatus.innerText = "Error: This player is not sold.";
+                    auctionStatus.style.color = "var(--color-danger)";
+                    return;
+                }
+                
+                const captainId = playerData.soldToCaptainId;
+                const price = playerData.sellingPrice;
+
+                const captainRef = doc(db, "seasons", selectedSeasonId, "captains", captainId);
+                const captainDoc = await getDoc(captainRef);
+                const captainData = captainDoc.data();
+                const restoredPoints = captainData.pointsRemaining + price;
+
+                await updateDoc(captainRef, { pointsRemaining: restoredPoints });
+                await updateDoc(playerRef, {
+                    status: "Pending", 
+                    sellingPrice: 0,
+                    soldToCaptainId: ""
+                });
+
+                auctionStatus.innerText = `Success: Reverted sale of ${playerData.name}. ${price} points returned to ${captainData.teamName}.`;
+                auctionStatus.style.color = "var(--color-success)";
+
+            } catch (error) {
+                console.error("Error undoing action: ", error);
+                auctionStatus.innerText = "Error: Could not process revert.";
+                auctionStatus.style.color = "var(--color-danger)";
+            }
+        });
+
+        // --- DANGER ZONE LOGIC ---
+        const clearDataButton = document.getElementById("clearDataButton");
+        const confirmDeleteGroup = document.getElementById("confirmDeleteGroup");
+        const confirmDeleteText = document.getElementById("confirmDeleteText");
+        const confirmDeleteButton = document.getElementById("confirmDeleteButton");
+        const dangerStatus = document.getElementById("dangerStatus");
+
+        clearDataButton.addEventListener("click", () => {
+            clearDataButton.style.display = "none";
+            confirmDeleteGroup.style.display = "block";
+            dangerStatus.innerText = "This action is permanent and cannot be undone.";
+            dangerStatus.style.color = "var(--color-danger)";
+        });
+
+        // NEW: Helper function to delete all docs in a collection
+        async function deleteCollection(collectionRef) {
+            const querySnapshot = await getDocs(collectionRef);
+            const batch = writeBatch(db);
+            querySnapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            return batch.commit();
+        }
+
+        confirmDeleteButton.addEventListener("click", async () => {
+            if (confirmDeleteText.value !== "DELETE") {
+                dangerStatus.innerText = "Type 'DELETE' exactly to confirm.";
+                dangerStatus.style.color = "var(--color-danger)";
+                return;
+            }
+            if (!selectedSeasonId) {
+                dangerStatus.innerText = "Error: No season selected.";
+                dangerStatus.style.color = "var(--color-danger)";
+                return;
+            }
+
+            dangerStatus.innerText = "Processing... Please wait.";
+            dangerStatus.style.color = "var(--color-text-dark)";
+
+            try {
+                // Clear all subcollections for the selected season
+                const playersRef = collection(db, "seasons", selectedSeasonId, "players");
+                await deleteCollection(playersRef);
+
+                const captainsRef = collection(db, "seasons", selectedSeasonId, "captains");
+                await deleteCollection(captainsRef);
+
+                const auctionSettingsRef = doc(db, "seasons", selectedSeasonId, "auction_settings", "live_controls");
+                await setDoc(auctionSettingsRef, { 
+                    currentPlayerOnBlockId: "",
+                    auctionState: "Pending",
+                    auctionStartTime: "",
+                    auctionVenue: "" // NEW
+                });
+                
+                currentPlayerOnBlockId = null;
+                currentPlayerName.innerText = "None";
+                document.getElementById("sellingPrice").value = "";
+                auctionTimeInput.value = "";
+                auctionVenueInput.value = ""; // NEW
+                updateButtonStates(); // <-- Re-enable buttons
+                
+                dangerStatus.innerText = `Success: All players and captains for ${selectedSeasonName} have been deleted.`;
+                dangerStatus.style.color = "var(--color-success)";
+
+            } catch (error) {
+                console.error("Error clearing data: ", error);
+                dangerStatus.innerText = "Error: Could not clear data. See console.";
+                dangerStatus.style.color = "var(--color-danger)";
+            }
+
+            clearDataButton.style.display = "block";
+            confirmDeleteGroup.style.display = "none";
+            confirmDeleteText.value = "";
+        });
+
+        // --- NEW: Delete Season Modal Logic ---
+        function openDeleteSeasonModal(seasonId, seasonName) {
+            seasonIdToDelete = seasonId; // Store the ID
+            seasonNameToDelete.innerText = seasonName; // Show name to user
+            deleteSeasonModal.style.display = "flex";
+            deleteSeasonStatus.innerText = "";
+            confirmDeleteSeasonText.value = "";
+        }
+        
+        cancelDeleteSeasonButton.addEventListener("click", () => {
+            deleteSeasonModal.style.display = "none";
+            seasonIdToDelete = null;
+        });
+
+        confirmDeleteSeasonButton.addEventListener("click", async () => {
+            if (confirmDeleteSeasonText.value !== seasonNameToDelete.innerText) {
+                deleteSeasonStatus.innerText = "Season name does not match.";
+                deleteSeasonStatus.style.color = "var(--color-danger)";
+                return;
+            }
+
+            deleteSeasonStatus.innerText = "Deleting season and all data...";
+            deleteSeasonStatus.style.color = "var(--color-text-dark)";
+
+            try {
+                // Delete all subcollections first
+                const playersRef = collection(db, "seasons", seasonIdToDelete, "players");
+                await deleteCollection(playersRef);
+                
+                const captainsRef = collection(db, "seasons", seasonIdToDelete, "captains");
+                await deleteCollection(captainsRef);
+                
+                const settingsRef = doc(db, "seasons", seasonIdToDelete, "auction_settings", "live_controls");
+                await deleteDoc(settingsRef);
+
+                // Now delete the main season doc
+                await deleteDoc(doc(db, "seasons", seasonIdToDelete));
+                
+                deleteSeasonStatus.innerText = "Season deleted successfully.";
+                deleteSeasonStatus.style.color = "var(--color-success)";
+                
+                setTimeout(() => {
+                    deleteSeasonModal.style.display = "none";
+                    seasonIdToDelete = null;
+                }, 1500);
+
+            } catch (error) {
+                console.error("Error deleting season: ", error);
+                deleteSeasonStatus.innerText = "Error deleting season.";
+                deleteSeasonStatus.style.color = "var(--color-danger)";
+            }
+        });
+
+        // --- NEW: Delete Single Player Logic ---
+        deletePlayerButton.addEventListener("click", () => {
+            const selectedOption = deletePlayerSelect.options[deletePlayerSelect.selectedIndex];
+            const playerId = selectedOption.value;
+            
+            if (!playerId) {
+                deletePlayerStatus.innerText = "Error: Please select a player to delete.";
+                deletePlayerStatus.style.color = "var(--color-danger)";
+                return;
+            }
+            
+            // Show custom modal
+            playerIdToDelete = playerId;
+            playerToDeleteData = JSON.parse(selectedOption.dataset.playerData);
+            playerNameToDelete.innerText = playerToDeleteData.name;
+            deletePlayerModalStatus.innerText = "";
+            deletePlayerModal.style.display = "flex";
+        });
+
+        cancelDeletePlayerButton.addEventListener("click", () => {
+            deletePlayerModal.style.display = "none";
+            playerIdToDelete = null;
+            playerToDeleteData = null;
+        });
+
+        confirmDeletePlayerButton.addEventListener("click", async () => {
+            deletePlayerModalStatus.innerText = "Processing deletion...";
+            deletePlayerModalStatus.style.color = "var(--color-text-dark)";
+
+            try {
+                const playerData = playerToDeleteData;
+                const playerRef = doc(db, "seasons", selectedSeasonId, "players", playerIdToDelete);
+
+                // Step 1: If player was sold, return points
+                if (playerData.status === "Sold" && playerData.soldToCaptainId && playerData.sellingPrice > 0) {
+                    const captainRef = doc(db, "seasons", selectedSeasonId, "captains", playerData.soldToCaptainId);
+                    const captainDoc = await getDoc(captainRef);
+                    if (captainDoc.exists()) {
+                        const captainData = captainDoc.data();
+                        const restoredPoints = captainData.pointsRemaining + playerData.sellingPrice;
+                        await updateDoc(captainRef, { pointsRemaining: restoredPoints });
+                    }
+                }
+
+                // Step 2: If player is on block, clear block
+                if (playerData.status === "OnBlock" || currentPlayerOnBlockId === playerIdToDelete) {
+                    const auctionSettingsRef = doc(db, "seasons", selectedSeasonId, "auction_settings", "live_controls");
+                    await setDoc(auctionSettingsRef, { currentPlayerOnBlockId: "", shufflingPlayerName: "" }, { merge: true });
+                    currentPlayerOnBlockId = null;
+                    currentPlayerName.innerText = "None";
+                    updateButtonStates(); // <-- Re-enable buttons
+                }
+
+                // Step 3: Delete the player
+                await deleteDoc(playerRef);
+
+                deletePlayerStatus.innerText = `Success: Deleted ${playerData.name}.`;
+                deletePlayerStatus.style.color = "var(--color-success)";
+
+            } catch (error) {
+                console.error("Error deleting player: ", error);
+                deletePlayerStatus.innerText = "Error: Could not delete player.";
+                deletePlayerStatus.style.color = "var(--color-danger)";
+            }
+            
+            deletePlayerModal.style.display = "none";
+            playerIdToDelete = null;
+            playerToDeleteData = null;
+        });
+
+
+        // --- PDF GENERATION LOGIC (TABLE FORMAT) ---
+        document.getElementById("generatePdfButton").addEventListener("click", async () => {
+            pdfStatus.innerText = "Generating PDF... Please wait.";
+            pdfStatus.style.color = "var(--color-text-dark)";
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                // 1. Create a data structure for squads
+                const captains = {};
+                const captainsRef = collection(db, "seasons", selectedSeasonId, "captains");
+                const captainsSnap = await getDocs(captainsRef);
+                captainsSnap.forEach(doc => {
+                    captains[doc.id] = {
+                        ...doc.data(),
+                        players: []
+                    };
+                });
+
+                // 2. Fetch all sold players and add them to their captain
+                const playersRef = collection(db, "seasons", selectedSeasonId, "players");
+                const playersQuery = query(playersRef, where("status", "==", "Sold"));
+                const playersSnap = await getDocs(playersQuery);
+                playersSnap.forEach(doc => {
+                    const player = doc.data();
+                    if (captains[player.soldToCaptainId]) {
+                        captains[player.soldToCaptainId].players.push(player);
+                    }
+                });
+
+                // 3. Build the PDF
+                doc.setFont("Helvetica", "bold");
+                doc.setFontSize(22);
+                doc.setTextColor("#D32F2F"); // Main Red
+                doc.text(`SS-RT Auction Results - ${selectedSeasonName}`, 105, 20, { align: "center" });
+
+                let yPos = 40; // Starting Y position
+                const tableHead = [['Player Name', 'Price Paid (pts)']];
+
+                // Loop through each captain
+                for (const captainId in captains) {
+                    const captain = captains[captainId];
+                    captain.players.sort((a, b) => b.sellingPrice - a.sellingPrice);
+                    const tableBody = captain.players.map(player => [player.name, player.sellingPrice]);
+
+                    const tableHeight = (tableBody.length + 1) * 10 + 20; // Estimate height
+                    if (yPos + tableHeight > 280) { 
+                        doc.addPage();
+                        yPos = 20;
+                    }
+
+                    doc.setFont("Helvetica", "bold");
+                    doc.setFontSize(16);
+                    doc.setTextColor("#007BFF"); // Tech Blue
+                    doc.text(captain.teamName, 14, yPos);
+                    
+                    doc.setFont("Helvetica", "normal");
+                    doc.setFontSize(12);
+                    doc.setTextColor("#333333"); // Dark text
+                    doc.text(`Captain: ${captain.captainName} | Points Remaining: ${captain.pointsRemaining}`, 14, yPos + 6);
+                    
+                    yPos += 10; 
+
+                    if (tableBody.length === 0) {
+                        doc.setFont("Helvetica", "italic");
+                        doc.text("- No players purchased -", 15, yPos + 5);
+                        yPos += 10;
+                    } else {
+                        doc.autoTable({
+                            head: tableHead,
+                            body: tableBody,
+                            startY: yPos,
+                            theme: 'grid',
+                            headStyles: {
+                                fillColor: [0, 123, 255], // Tech Blue
+                                textColor: [255, 255, 255]
+                            },
+                            styles: {
+                                font: 'Helvetica',
+                                cellPadding: 2
+                            },
+                            margin: { left: 14, right: 14 }
+                        });
+                        yPos = doc.autoTable.previous.finalY + 15; // Update yPos to be after the table
+                    }
+                }
+
+                // 4. Save the PDF
+                doc.save(`SS-RT_Auction_Squads_${selectedSeasonName}.pdf`);
+                pdfStatus.innerText = "Success! PDF downloaded.";
+                pdfStatus.style.color = "var(--color-success)";
+
+            } catch (error) {
+                console.error("Error generating PDF: ", error);
+                pdfStatus.innerText = "Error: Could not generate PDF. See console.";
+                pdfStatus.style.color = "var(--color-danger)";
+            }
+        });
+        
+        // --- NEW: ARCHIVE UPLOAD LOGIC ---
+        uploadArchiveButton.addEventListener("click", async () => {
+            const file = archiveCsvInput.files[0];
+            if (!file) {
+                archiveStatus.innerText = "Please select a CSV file.";
+                archiveStatus.style.color = "var(--color-danger)";
+                return;
+            }
+            if (!selectedSeasonId) {
+                archiveStatus.innerText = "Error: No season selected.";
+                archiveStatus.style.color = "var(--color-danger)";
+                return;
+            }
+
+            archiveStatus.innerText = "Processing archive... Please wait.";
+            archiveStatus.style.color = "var(--color-text-dark)";
+            uploadArchiveButton.disabled = true;
+
+            try {
+                // 1. Get all captains in the current season
+                const captainMap = new Map();
+                const captainsRef = collection(db, "seasons", selectedSeasonId, "captains");
+                const captainsSnap = await getDocs(captainsRef);
+                if (captainsSnap.empty) {
+                    archiveStatus.innerText = "Error: Please add captains before uploading an archive.";
+                    archiveStatus.style.color = "var(--color-danger)";
+                    uploadArchiveButton.disabled = false;
+                    return;
+                }
+                captainsSnap.forEach(doc => {
+                    captainMap.set(doc.data().teamName.toLowerCase(), doc.id);
+                });
+
+                // 2. Read the CSV file
+                const fileText = await file.text();
+                const rows = fileText.split('\n').slice(1); // Split by line, skip header row
+                
+                const playersBatch = writeBatch(db);
+                const captainTotals = new Map(); // To calculate points used
+
+                for (const row of rows) {
+                    if (row.trim() === "") continue; 
+                    
+                    const [playerName, sellingPrice, teamName] = row.split(',').map(s => s.trim());
+                    
+                    if (!playerName || !sellingPrice || !teamName) {
+                        console.warn("Skipping bad row:", row);
+                        continue;
+                    }
+
+                    const captainId = captainMap.get(teamName.toLowerCase());
+                    const price = parseFloat(sellingPrice);
+
+                    if (!captainId) {
+                        console.warn(`Could not find captain for team: ${teamName}`);
+                        continue;
+                    }
+
+                    // Add player to batch
+                    const newPlayer = {
+                        name: playerName,
+                        profilePhotoUrl: "", // Archive has no photo
+                        basePrice: 1,
+                        status: "Sold",
+                        sellingPrice: price,
+                        soldToCaptainId: captainId
+                    };
+                    const newPlayerRef = doc(collection(db, "seasons", selectedSeasonId, "players"));
+                    playersBatch.set(newPlayerRef, newPlayer);
+
+                    // Update captain totals
+                    const total = (captainTotals.get(captainId) || 0) + price;
+                    captainTotals.set(captainId, total);
+                }
+                
+                // 3. Commit all the new players
+                await playersBatch.commit();
+
+                // 4. Update all captain points
+                const captainBatch = writeBatch(db);
+                for (const [captainId, totalUsed] of captainTotals.entries()) {
+                    const captainRef = doc(db, "seasons", selectedSeasonId, "captains", captainId);
+                    captainBatch.update(captainRef, {
+                        pointsRemaining: 100 - totalUsed // Assumes 100 point purse
+                    });
+                }
+                await captainBatch.commit();
+
+                archiveStatus.innerText = "Success! Archive uploaded.";
+                archiveStatus.style.color = "var(--color-success)";
+                archiveCsvInput.value = ""; // Clear file input
+
+            } catch (e) {
+                console.error("Error uploading archive: ", e);
+                archiveStatus.innerText = "Error uploading archive. Check console.";
+                archiveStatus.style.color = "var(--color-danger)";
+            }
+            uploadArchiveButton.disabled = false;
+        });
+
+
+    </script>
+</body>
+</html>
